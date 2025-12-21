@@ -1,0 +1,19 @@
+# Secrets and credentials
+*.pem
+*.key
+*secret*
+*password*
+*credential*
+.env
+.env.*
+
+# Editor/OS artifacts
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+
+# Backup files
+*.bak
+*.backup
