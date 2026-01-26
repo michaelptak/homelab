@@ -1,0 +1,25 @@
+#!/bin/bash
+
+MUSIC_DIR=""
+BANDCAMP_USER=""
+COOKIE_FILE=""
+SERVER=""
+SERVER_MUSIC_DIR=""
+
+# Fetch new purchases
+echo "Checking for new Bandcamp purchases..."
+bandsnatch run -f flac -c "$COOKIE_FILE" -o "$MUSIC_DIR" "$BANDCAMP_USER"
+
+# Remove PDF booklets
+echo "Removing PDF booklets..."
+find "$MUSIC_DIR" -name "*.pdf" -delete
+
+# Tag metadata
+echo "Tagging music..."
+beet import -q -i "$MUSIC_DIR"
+
+# Sync to server via rsync
+echo "Synching to server..."
+rsync -avh --progress --ignore-existing "$MUSIC_DIR/" "$SERVER:$SERVER_MUSIC_DIR"
+
+echo "Done!"

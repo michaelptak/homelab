@@ -34,9 +34,8 @@ A place for me to document my setup for my personal home server. Using it for se
 - RAID1 storage array with SMART monitoring
 - Docker with Traefik reverse proxy
 - Local SSL certificates
-
-**In Progress:**
 - NextCloud deployment
+- Navidrome music streaming server
 
 **Planned:**
 - Monitoring stack (Prometheus/Grafana)
