@@ -1,6 +1,6 @@
 # Homelab
 
-A place for me to document my setup for my personal home server. Using it for self-hosted services, mainly for fun and as a learning environment for Linux, Docker, networking, etc.
+A place for me to document my setup and scripts for my personal home server for reproducibility. Using it for self-hosted services, mainly for fun and as a learning environment for Linux, Docker, networking, etc.
 
 ## Hardware
 
@@ -16,9 +16,10 @@ A place for me to document my setup for my personal home server. Using it for se
 **Running:**
 - Traefik - reverse proxy with SSL
 - Portainer - container management
+- NextCloud - file storage
+- Navidrome - music streaming
 
 **Not yet deployed:**
-- NextCloud - file storage
 - Grafana + Prometheus - monitoring
 
 ## Network
@@ -36,6 +37,7 @@ A place for me to document my setup for my personal home server. Using it for se
 - Local SSL certificates
 - NextCloud deployment
 - Navidrome music streaming server
+- Remote access via Tailscale
 
 **Planned:**
 - Monitoring stack (Prometheus/Grafana)
