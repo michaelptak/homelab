@@ -1,0 +1,64 @@
+# Requires secrets in /storage/docker/secrets/:
+#   - nextcloud_db_password
+#   - nextcloud_db_root_password
+
+services:
+  nextcloud-db:
+    image: mariadb:11
+    container_name: nextcloud-db
+    restart: unless-stopped
+    volumes:
+      - /storage/docker/data/nextcloud/db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_root_password
+      - db_password
+    networks:
+      - nextcloud-internal
+
+  nextcloud:
+    image: nextcloud:stable
+    container_name: nextcloud
+    restart: unless-stopped
+    depends_on:
+      - nextcloud-db
+    volumes:
+      - /storage/docker/data/nextcloud/config:/var/www/html
+      - /storage/docker/data/nextcloud/files:/var/www/html/data
+    environment:
+      MYSQL_HOST: nextcloud-db
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+      NEXTCLOUD_TRUSTED_DOMAINS: nextcloud.homelab.local
+      OVERWRITEPROTOCOL: https
+    secrets:
+      - db_password
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextcloud.rule=Host(`nextcloud.homelab.local`)"
+      - "traefik.http.routers.nextcloud.entrypoints=websecure"
+      - "traefik.http.routers.nextcloud.tls=true"
+      - "traefik.http.middlewares.nextcloud-headers.headers.customRequestHeaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.nextcloud.middlewares=nextcloud-headers"
+      - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
+      - "traefik.docker.network=proxy"
+    networks:
+      - nextcloud-internal
+      - proxy
+
+networks:
+  nextcloud-internal:
+    internal: true
+  proxy:
+    external: true
+
+secrets:
+  db_password:
+    file: /storage/docker/secrets/nextcloud_db_password
+  db_root_password:
+    file: /storage/docker/secrets/nextcloud_db_root_password
