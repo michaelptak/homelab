@@ -126,3 +126,143 @@ Enable SMART monitoring:
 sudo smartctl -s on /dev/sda
 sudo smartctl -s on /dev/sdb
 ```
+
+
+## Day 2: Services and Management
+
+### Step 4: Docker Installation
+
+Follow the official Docker installation guide for Ubuntu:
+https://docs.docker.com/engine/install/ubuntu/
+
+After installation:
+```bash
+# Add user to docker group
+sudo usermod -aG docker USERNAME
+newgrp docker
+
+# Enable on boot
+sudo systemctl enable docker
+
+# Configure log rotation
+sudo tee /etc/docker/daemon.json > /dev/null <<EOF
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+EOF
+
+sudo systemctl restart docker
+```
+
+Create directory structure:
+```bash
+mkdir -p /storage/docker/{compose,data,secrets}
+chmod 700 /storage/docker/secrets
+```
+
+### Step 5: SSL Certificates
+
+Using mkcert for local CA:
+```bash
+mkcert -install
+
+mkdir -p /storage/docker/data/certs
+cd /storage/docker/data/certs
+
+# Generate wildcard cert for local domain
+mkcert "*.homelab.local" "homelab.local" "localhost" "127.0.0.1" "::1" SERVER_IP
+
+# Rename for Traefik
+mv _wildcard.homelab.local+5.pem homelab.local.pem
+mv _wildcard.homelab.local+5-key.pem homelab.local-key.pem
+
+chmod 600 *.pem
+```
+
+Copy the CA to client machines for browser trust:
+```bash
+# From client machine
+scp -P 2222 USERNAME@SERVER_IP:~/.local/share/mkcert/rootCA.pem .
+# Then install in your browser/system trust store
+```
+
+### Step 6: Secrets Setup
+
+Generate and store service passwords:
+```bash
+# Generate passwords
+NEXTCLOUD_DB_ROOT_PASSWORD=$(openssl rand -base64 32)
+NEXTCLOUD_DB_PASSWORD=$(openssl rand -base64 32)
+GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 32)
+TRAEFIK_DASHBOARD_PASSWORD=$(openssl rand -base64 32)
+
+# Store in files
+echo "$NEXTCLOUD_DB_ROOT_PASSWORD" | sudo tee /storage/docker/secrets/nextcloud_db_root_password
+echo "$NEXTCLOUD_DB_PASSWORD" | sudo tee /storage/docker/secrets/nextcloud_db_password
+echo "$GRAFANA_ADMIN_PASSWORD" | sudo tee /storage/docker/secrets/grafana_admin_password
+
+# Traefik dashboard uses htpasswd format
+echo "admin:$(openssl passwd -apr1 "$TRAEFIK_DASHBOARD_PASSWORD")" | sudo tee /storage/docker/secrets/traefik_dashboard_auth
+
+# Secure permissions
+sudo chmod 600 /storage/docker/secrets/*
+sudo chown root:root /storage/docker/secrets/*
+
+# Save these passwords somewhere safe (password manager)
+echo "NextCloud DB Root: $NEXTCLOUD_DB_ROOT_PASSWORD"
+echo "NextCloud DB User: $NEXTCLOUD_DB_PASSWORD"
+echo "Grafana Admin: $GRAFANA_ADMIN_PASSWORD"
+echo "Traefik Dashboard: admin / $TRAEFIK_DASHBOARD_PASSWORD"
+```
+
+### Step 7: Traefik Reverse Proxy
+
+Create dynamic TLS config:
+```bash
+mkdir -p /storage/docker/data/traefik/dynamic
+
+tee /storage/docker/data/traefik/dynamic/tls.yml > /dev/null <<EOF
+tls:
+  certificates:
+    - certFile: /certs/homelab.local.pem
+      keyFile: /certs/homelab.local-key.pem
+EOF
+```
+
+Create Docker network and deploy:
+```bash
+docker network create proxy
+
+cd /storage/docker/compose
+docker compose -f traefik.yml up -d
+```
+
+See [configs/docker/traefik.yml](../configs/docker/traefik.yml) for the compose file.
+
+### Step 8: Portainer
+```bash
+cd /storage/docker/compose
+docker compose -f portainer.yml up -d
+```
+
+See [configs/docker/portainer.yml](../configs/docker/portainer.yml) for the compose file.
+
+At this point, initialize a git repository in `/storage/docker/compose` to track configuration changes locally.
+
+### Local DNS
+
+Add entries to `/etc/hosts` on client machines:
+```
+SERVER_IP traefik.homelab.local
+SERVER_IP portainer.homelab.local
+```
+
+### Verify
+
+After setup, these should be accessible:
+- https://traefik.homelab.local (admin / your password)
+- https://portainer.homelab.local
