@@ -18,8 +18,6 @@ A place for me to document my setup and scripts for my personal home server for 
 - Portainer - container management
 - NextCloud - file storage
 - Navidrome - music streaming
-
-**Not yet deployed:**
 - Grafana + Prometheus - monitoring
 
 ## Network
@@ -40,7 +38,6 @@ A place for me to document my setup and scripts for my personal home server for 
 - Remote access via Tailscale
 
 **Planned:**
-- Monitoring stack (Prometheus/Grafana)
 - Automated backups
 
 ## Documentation
