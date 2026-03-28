@@ -1,0 +1,21 @@
+services:
+  languagetool:
+    image: erikvl87/languagetool:latest
+    container_name: languagetool
+    restart: unless-stopped
+    environment:
+      - Java_Xms=512m
+      - Java_Xmx=2g
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.languagetool.rule=Host(`languagetool.homelab.local`)"
+      - "traefik.http.routers.languagetool.entrypoints=websecure"
+      - "traefik.http.routers.languagetool.tls=true"
+      - "traefik.http.services.languagetool.loadbalancer.server.port=8010"
+      - "traefik.docker.network=proxy"
+
+networks:
+  proxy:
+    external: true
