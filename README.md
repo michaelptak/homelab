@@ -19,6 +19,7 @@ A place for me to document my setup and scripts for my personal home server for 
 - NextCloud - file storage
 - Navidrome - music streaming
 - Grafana + Prometheus - monitoring
+- Languagetool - editing tool for writing
 
 ## Network
 
