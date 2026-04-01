@@ -45,4 +45,7 @@ A place for me to document my setup and scripts for my personal home server for 
 Note: Still in progress.
 - [Setup Guide](docs/setup-guide.md)
 - [Troubleshooting](docs/troubleshooting.md)
+- [NextCloud](docs/nextcloud.md)
+- [Grafana and Prometheus](docs/monitoring.md)
+- [Automated Backups](docs/backups.md)
 

@@ -1,7 +1,0 @@
-[Unit]
-Description=Homelab Backup
-After=docker.service
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/homelab-backup.sh
