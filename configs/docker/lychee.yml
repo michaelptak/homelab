@@ -1,0 +1,65 @@
+services:
+  lychee-db:
+    image: mariadb:10.11
+    container_name: lychee-db
+    restart: unless-stopped
+    volumes:
+      - /storage/docker/data/lychee/db:/var/lib/mysql
+      - /storage/docker/secrets/lychee_db_root_password:/run/secrets/db_root_password:ro
+      - /storage/docker/secrets/lychee_db_password:/run/secrets/db_password:ro
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_password
+      - MYSQL_DATABASE=lychee
+      - MYSQL_USER=lychee
+    networks:
+      - lychee
+
+  lychee:
+    image: lycheeorg/lychee:latest
+    container_name: lychee
+    restart: unless-stopped
+    depends_on:
+      - lychee-db
+    volumes:
+      - /storage/docker/data/lychee/config:/config
+      - /storage/media/images:/uploads
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=lychee-db
+      - DB_PORT=3306
+      - DB_DATABASE=lychee
+      - DB_USERNAME=lychee
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - APP_URL=https://lychee.homelab.local
+      - APP_ENV=production
+      - TIMEZONE=America/New_York
+      - PHP_TZ=America/New_York  
+      - APP_KEY_FILE=/run/secrets/app_key
+      - TRUSTED_PROXIES=*
+      - APP_FORCE_HTTPS=true
+    secrets:
+      - db_password
+      - app_key
+    networks:
+      - lychee
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lychee.rule=Host(`lychee.homelab.local`)"
+      - "traefik.http.routers.lychee.entrypoints=websecure"
+      - "traefik.http.routers.lychee.tls=true"
+      - "traefik.http.services.lychee.loadbalancer.server.port=8000"
+      - "traefik.docker.network=proxy"
+
+secrets:
+  db_password:
+    file: /storage/docker/secrets/lychee_db_password
+  app_key:
+    file: /storage/docker/secrets/lychee_app_key
+
+networks:
+  lychee:
+  proxy:
+    external: true
+
