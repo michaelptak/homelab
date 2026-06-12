@@ -20,6 +20,7 @@ A place for me to document my setup and scripts for my personal home server for 
 - Navidrome - music streaming
 - Grafana + Prometheus - monitoring
 - Languagetool - editing tool for writing
+- Lychee - Photo storage
 
 ## Network
 
@@ -37,8 +38,6 @@ A place for me to document my setup and scripts for my personal home server for 
 - NextCloud deployment
 - Navidrome music streaming server
 - Remote access via Tailscale
-
-**Planned:**
 - Automated backups
 
 ## Documentation

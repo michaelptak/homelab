@@ -27,6 +27,11 @@ tar czf "$BACKUP_DIR/data_$DATE.tar.gz" -C /storage/docker data || echo "ERROR: 
 echo "Backing up system configs..."
 tar czf "$BACKUP_DIR/system_$DATE.tar.gz" /etc/fstab /etc/ssh/sshd_config /etc/mdadm/mdadm.conf || echo "ERROR: system backup failed"
 
+# Backup Lychee database
+echo "Backing up Lychee database..."
+LYCHEE_DB_PASS=$(cat /storage/docker/secrets/lychee_db_password)
+docker exec lychee-db mariadb-dump --single-transaction -u lychee -p"$LYCHEE_DB_PASS" lychee >"$BACKUP_DIR/lychee_db_$DATE.sql" || echo "ERROR: Lychee database dump failed"
+
 echo "Cleaning up backups older than $KEEP_DAYS days..."
 find "$BACKUP_DIR" -name "*.tar.gz" -mtime +$KEEP_DAYS -delete
 find "$BACKUP_DIR" -name "*.sql" -mtime +$KEEP_DAYS -delete
